@@ -70,7 +70,7 @@ class Pix2PixModel(BaseModel):
             elif self.opt_content_loss == 'SL1':
                 self.criterionCtt = torch.nn.SmoothL1Loss()
             elif self.opt_content_loss == 'RL1':
-                self.criterionCtt = RL1Loss(2)
+                self.criterionCtt = RL1Loss(opt.roll_len)
             else:
                 self.criterionCtt = torch.nn.L1Loss()
             # initialize optimizers; schedulers will be automatically created by function <BaseModel.setup>.

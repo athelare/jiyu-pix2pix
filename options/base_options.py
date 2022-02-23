@@ -56,6 +56,7 @@ class BaseOptions():
         parser.add_argument('--verbose', action='store_true', help='if specified, print more debugging information')
         parser.add_argument('--suffix', default='', type=str, help='customized suffix: opt.name = opt.name + suffix: e.g., {model}_{netG}_size{load_size}')
         parser.add_argument('--content_loss', type=str, default='L1', help='content loss type [L1 | L2 | SL1 | RL1]')
+        parser.add_argument('--roll_len', type=int, default=2, help='roll size for RL1 content loss')
         self.initialized = True
         return parser
 
