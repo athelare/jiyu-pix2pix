@@ -108,7 +108,7 @@ class Pix2PixModel(BaseModel):
             pred_real = self.netD(real_AB).mean()
             # self.loss_D_real = self.criterionGAN(pred_real, True)
             # combine loss and calculate gradients
-            gradient_penalty, _ = networks.cal_gradient_penalty(self.netD, real_AB.data, fake_AB.data, self.gpu_ids)
+            gradient_penalty, _ = networks.cal_gradient_penalty(self.netD, real_AB.data, fake_AB.data, self.gpu_ids[0])
             self.loss_D = pred_fake - pred_real + gradient_penalty
         else:
             """Calculate GAN loss for the discriminator"""
