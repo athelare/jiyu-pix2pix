@@ -63,6 +63,7 @@ class Pix2PixModel(BaseModel):
                                           opt.n_layers_D, opt.norm, opt.init_type, opt.init_gain, self.gpu_ids)
 
         if self.isTrain:
+            self.gan_mode = opt.gan_mode
             # define loss functions
             self.criterionGAN = networks.GANLoss(opt.gan_mode).to(self.device)
             if self.opt_content_loss == 'L2':
@@ -97,17 +98,30 @@ class Pix2PixModel(BaseModel):
         self.fake_B = self.netG(self.real_A)  # G(A)
 
     def backward_D(self):
-        """Calculate GAN loss for the discriminator"""
-        # Fake; stop backprop to the generator by detaching fake_B
-        fake_AB = torch.cat((self.real_A, self.fake_B), 1)  # we use conditional GANs; we need to feed both input and output to the discriminator
-        pred_fake = self.netD(fake_AB.detach())
-        self.loss_D_fake = self.criterionGAN(pred_fake, False)
-        # Real
-        real_AB = torch.cat((self.real_A, self.real_B), 1)
-        pred_real = self.netD(real_AB)
-        self.loss_D_real = self.criterionGAN(pred_real, True)
-        # combine loss and calculate gradients
-        self.loss_D = (self.loss_D_fake + self.loss_D_real) * 0.5
+        if self.gan_mode == 'wgangp':
+            fake_AB = torch.cat((self.real_A, self.fake_B),
+                                1)  # we use conditional GANs; we need to feed both input and output to the discriminator
+            pred_fake = self.netD(fake_AB.detach()).mean()
+            # self.loss_D_fake = self.criterionGAN(pred_fake, False)
+            # Real
+            real_AB = torch.cat((self.real_A, self.real_B), 1)
+            pred_real = self.netD(real_AB).mean()
+            # self.loss_D_real = self.criterionGAN(pred_real, True)
+            # combine loss and calculate gradients
+            gradient_penalty, _ = networks.cal_gradient_penalty(self.netD, real_AB.data, fake_AB.data)
+            self.loss_D = pred_fake - pred_real + gradient_penalty
+        else:
+            """Calculate GAN loss for the discriminator"""
+            # Fake; stop backprop to the generator by detaching fake_B
+            fake_AB = torch.cat((self.real_A, self.fake_B), 1)  # we use conditional GANs; we need to feed both input and output to the discriminator
+            pred_fake = self.netD(fake_AB.detach())
+            self.loss_D_fake = self.criterionGAN(pred_fake, False)
+            # Real
+            real_AB = torch.cat((self.real_A, self.real_B), 1)
+            pred_real = self.netD(real_AB)
+            self.loss_D_real = self.criterionGAN(pred_real, True)
+            # combine loss and calculate gradients
+            self.loss_D = (self.loss_D_fake + self.loss_D_real) * 0.5
         self.loss_D.backward()
 
     def backward_G(self):
