@@ -45,13 +45,16 @@ class Pix2PixModel(BaseModel):
         """
         BaseModel.__init__(self, opt)
         self.opt_content_loss = opt.content_loss
-        # specify the training losses you want to print out. The training/test scripts will call <BaseModel.get_current_losses>
-        self.loss_names = ['G_GAN', 'G_' + self.opt_content_loss, 'D_real', 'D_fake']
-        # specify the images you want to save/display. The training/test scripts will call <BaseModel.get_current_visuals>
-        self.visual_names = ['real_A', 'fake_B', 'real_B']
-        # specify the models you want to save to the disk. The training/test scripts will call <BaseModel.save_networks> and <BaseModel.load_networks>
         if self.isTrain:
             self.model_names = ['G', 'D']
+            # specify the training losses you want to print out. The training/test scripts will call <BaseModel.get_current_losses>
+            self.loss_names = ['G_GAN', 'G_' + self.opt_content_loss, 'D_real', 'D_fake']
+            if opt.gan_mode == 'wgangp':
+                self.loss_names.append('D_GP')
+            # specify the images you want to save/display. The training/test scripts will call <BaseModel.get_current_visuals>
+            self.visual_names = ['real_A', 'fake_B', 'real_B']
+            # specify the models you want to save to the disk. The training/test scripts will call <BaseModel.save_networks> and <BaseModel.load_networks>
+
         else:  # during test time, only load G
             self.model_names = ['G']
         # define networks (both generator and discriminator)
@@ -101,15 +104,15 @@ class Pix2PixModel(BaseModel):
         if self.gan_mode == 'wgangp':
             fake_AB = torch.cat((self.real_A, self.fake_B),
                                 1)  # we use conditional GANs; we need to feed both input and output to the discriminator
-            pred_fake = self.netD(fake_AB.detach()).mean()
+            self.loss_D_fake = self.netD(fake_AB.detach()).mean()
             # self.loss_D_fake = self.criterionGAN(pred_fake, False)
             # Real
             real_AB = torch.cat((self.real_A, self.real_B), 1)
-            pred_real = self.netD(real_AB).mean()
+            self.loss_D_real = self.netD(real_AB).mean()
             # self.loss_D_real = self.criterionGAN(pred_real, True)
             # combine loss and calculate gradients
-            gradient_penalty, _ = networks.cal_gradient_penalty(self.netD, real_AB.data, fake_AB.data, self.gpu_ids[0])
-            self.loss_D = pred_fake - pred_real + gradient_penalty
+            self.loss_D_GP, _ = networks.cal_gradient_penalty(self.netD, real_AB.data, fake_AB.data, self.gpu_ids[0])
+            self.loss_D = self.loss_D_fake - self.loss_D_real + self.loss_D_GP
         else:
             """Calculate GAN loss for the discriminator"""
             # Fake; stop backprop to the generator by detaching fake_B
