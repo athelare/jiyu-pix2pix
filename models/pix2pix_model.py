@@ -1,7 +1,7 @@
 import torch
 from .base_model import BaseModel
 from . import networks
-from .losses import RL1Loss
+from .losses import RL1Loss, PerceptualLoss
 
 
 class Pix2PixModel(BaseModel):
@@ -74,6 +74,10 @@ class Pix2PixModel(BaseModel):
                 self.criterionCtt = torch.nn.SmoothL1Loss()
             elif self.opt_content_loss == 'RL1':
                 self.criterionCtt = RL1Loss(opt.roll_len)
+                self.criterionCtt.initialize(torch.nn.functional.l1_loss)
+            elif self.opt_content_loss == 'Perceptual':
+                self.criterionCtt = PerceptualLoss()
+                self.criterionCtt.initialize(torch.nn.functional.mse_loss)
             else:
                 self.criterionCtt = torch.nn.L1Loss()
             # initialize optimizers; schedulers will be automatically created by function <BaseModel.setup>.
