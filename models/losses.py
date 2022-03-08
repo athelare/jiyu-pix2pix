@@ -43,8 +43,7 @@ class PerceptualLoss:
         with torch.no_grad():
             self.criterion = loss
             self.contentFunc = self.contentFunc()
-            # self.transform = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-            self.transform = transforms.Normalize(mean=[0.5], std=[0.225])
+            self.transform = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 
     def get_loss(self, fakeIm, realIm):
         fakeIm = (fakeIm + 1) / 2.0
