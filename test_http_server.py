@@ -42,8 +42,8 @@ from util.visualizer import save_images
 from util import html
 
 
-dir_path = "/home/jiyu/data/tmpAB"
-pic_path = "/home/jiyu/data/tmpAB/pic.PNG"
+dir_path = "/home/jiyu/data/tmpAB/test"
+pic_path = "/home/jiyu/data/tmpAB/test/pic.PNG"
 
 
 def getImageBytes(img: Image):
