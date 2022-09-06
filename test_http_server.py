@@ -42,7 +42,7 @@ from util.visualizer import save_images
 from util import html
 
 
-dir_path = "/home/jiyu/data/tmpAB/test"
+dir_path = "/home/jiyu/data/tmpAB"
 pic_path = "/home/jiyu/data/tmpAB/test/pic.PNG"
 
 
@@ -76,7 +76,7 @@ class Handler(tornado.web.RequestHandler, ABC):
                 img_data = visuals["fake_B"]
                 img_np = util.tensor2im(img_data)
                 img_pil = Image.fromarray(img_np)
-                self.write(getImageBytes(image))
+                self.write(getImageBytes(img_pil))
                 break
             # do something
 
@@ -103,13 +103,13 @@ if __name__ == '__main__':
     opt.serial_batches = True  # disable data shuffling; comment this line if results on randomly chosen images are needed.
     opt.no_flip = True    # no flip; comment this line if results on flipped images are needed.
     opt.display_id = -1   # no visdom display; the test code saves the results to a HTML file.
-    opt.dataroot = dir_path
+    # opt.dataroot = dir_path
     dataset = create_dataset(opt)  # create a dataset given opt.dataset_mode and other options
     model = create_model(opt)      # create a model given opt.model and other options
     model.setup(opt)               # regular setup: load and print networks; create schedulers
 
-    asyncio.run(main())
-
+    # asyncio.run(main())
+    asyncio.get_event_loop().run_until_complete(main())
     # # initialize logger
     # if opt.use_wandb:
     #     wandb_run = wandb.init(project='CycleGAN-and-pix2pix', name=opt.name, config=opt) if not wandb.run else wandb.run
