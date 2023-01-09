@@ -7,15 +7,21 @@ import torchvision.models as models
 
 
 class RL1Loss(nn.Module):
+    """
+    偏移损失计算
+    """
     def __init__(self, roll_dis: int):
         super(RL1Loss, self).__init__()
-        self.roll_dis = roll_dis
+        self.roll_dis = roll_dis  # 偏移距离设定
 
     def initialize(self, loss):
         with torch.no_grad():
-            self.criterion = loss
+            self.criterion = loss  # 偏移损失中，用于计算每次偏移后的损失，loss输入为L1Loss
 
     def forward(self, _input: Tensor, target: Tensor) -> Tensor:
+        """
+        在偏移距离范围内，使用torch.roll实现偏移操作，然后计算偏移后的损失，返回多次偏移的最小损失
+        """
         losses_list = []
         for i in range(-self.roll_dis,self.roll_dis+1):
             for j in range(-self.roll_dis,self.roll_dis+1):

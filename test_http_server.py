@@ -47,19 +47,27 @@ pic_path = "/home/jiyu/data/tmpAB/test/pic.PNG"
 
 
 def getImageBytes(img: Image):
+    """
+    将Image格式的图像转化为二进制图像，用于网络传输
+    """
     res = BytesIO()
     img.save(res, format='PNG')
     return res.getvalue()
 
 
 def getABImage(img: Image):
+    """
+    拼接输入图像与一副空白图像，与训练的时候的输入保持一致
+    """
     res = Image.new('RGB', (img.width << 1, img.height))
     res.paste(img, (0, 0))
     return res
 
 
 class Handler(tornado.web.RequestHandler, ABC):
-
+    """
+    通过http post的形式提供边缘检测服务，接受图片的post请求，返回边缘图
+    """
     def post(self):
         content = self.request.body_arguments.get("content")[0]
         if content is not None:
@@ -73,7 +81,7 @@ class Handler(tornado.web.RequestHandler, ABC):
                 model.set_input(data)  # unpack data from data loader
                 model.test()           # run inference
                 visuals = model.get_current_visuals()  # get image results
-                img_data = visuals["fake_B"]
+                img_data = visuals["fake_B"]  # 获取模型的输出
                 img_np = util.tensor2im(img_data)
                 img_pil = Image.fromarray(img_np)
                 self.write(getImageBytes(img_pil))
